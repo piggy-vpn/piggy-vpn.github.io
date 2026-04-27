@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>VPN - Выбор тарифа</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(145deg, #f5f7fc 0%, #e9ecf5 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .order-card {
+      max-width: 960px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 2.5rem;
+      box-shadow: 0 25px 45px -12px rgba(0, 20, 50, 0.25), 0 8px 18px rgba(0, 0, 0, 0.05);
+      padding: 2rem 2rem 2.2rem;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: #0b1a2f;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 0.5rem;
+    }
+
+    h1 span {
+      background: #1e3b5c;
+      color: white;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 0.2rem 0.9rem;
+      border-radius: 40px;
+    }
+
+    .subhead {
+      color: #4a5c6f;
+      margin-bottom: 1.8rem;
+      font-weight: 400;
+      font-size: 1rem;
+      border-left: 4px solid #2d7a9b;
+      padding-left: 1rem;
+    }
+
+    .section-title {
+      font-weight: 600;
+      color: #1a2e44;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .server-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.8rem;
+      margin: 1.2rem 0 1rem;
+    }
+
+    .server-option input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .server-option label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f2f6fb;
+      padding: 0.9rem 1.2rem;
+      border-radius: 24px;
+      border: 1.8px solid transparent;
+      font-weight: 500;
+      color: #1a3349;
+      cursor: pointer;
+      transition: all 0.18s;
+      width: 100%;
+    }
+
+    .server-option label:hover {
+      background: #e6edf6;
+      border-color: #b6cde0;
+    }
+
+    .server-option input[type="radio"]:checked + label {
+      background: #1e3b5c;
+      border-color: #102433;
+      color: white;
+      box-shadow: 0 12px 18px -8px rgba(20, 60, 100, 0.3);
+    }
+
+    .server-option input[type="radio"]:checked + label .price-badge {
+      background: #ffd966;
+      color: #1e2f40;
+      font-weight: 700;
+    }
+
+    .flag-name {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.1rem;
+    }
+
+    .price-badge {
+      background: #d4e0ec;
+      padding: 0.3rem 0.7rem;
+      border-radius: 40px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1a3a57;
+      white-space: nowrap;
+    }
+
+    .period-section {
+      margin: 1.8rem 0 1.2rem;
+    }
+
+    .period-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .period-option {
+      flex: 1 1 120px;
+    }
+
+    .period-option input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .period-option label {
+      display: block;
+      text-align: center;
+      background: #f2f6fb;
+      padding: 0.9rem 0.3rem;
+      border-radius: 40px;
+      font-weight: 600;
+      color: #1a3349;
+      cursor: pointer;
+      border: 1.8px solid transparent;
+      transition: all 0.18s;
+    }
+
+    .period-option label:hover {
+      background: #e0eaf4;
+      border-color: #b6cde0;
+    }
+
+    .period-option input[type="radio"]:checked + label {
+      background: #1e3b5c;
+      color: white;
+      border-color: #102433;
+      box-shadow: 0 8px 14px rgba(20, 60, 100, 0.25);
+    }
+
+    .period-price {
+      font-size: 1.3rem;
+      font-weight: 700;
+      display: block;
+      margin-top: 4px;
+    }
+
+    .period-months {
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    .promo-block {
+      margin: 1rem 0 0.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+      background: #f8fafd;
+      padding: 1rem;
+      border-radius: 40px;
+    }
+    .promo-input-group {
+      flex: 2;
+      min-width: 160px;
+    }
+    .promo-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #1e3b5c;
+      margin-bottom: 4px;
+      display: block;
+    }
+    .promo-input {
+      width: 100%;
+      padding: 0.7rem 1rem;
+      border-radius: 60px;
+      border: 1px solid #cbdde9;
+      font-size: 1rem;
+      background: white;
+    }
+    .promo-button {
+      background: #2d7a9b;
+      color: white;
+      border: none;
+      padding: 0.7rem 1.4rem;
+      border-radius: 60px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.15s;
+      white-space: nowrap;
+    }
+    .promo-button:hover {
+      background: #1e5a75;
+    }
+    .promo-message {
+      font-size: 0.8rem;
+      margin-top: 6px;
+      color: #2a5f7a;
+    }
+    .promo-success {
+      color: #2b7a3e;
+      font-weight: 500;
+    }
+    .promo-error {
+      color: #c42e2e;
+    }
+
+    .trial-info-panel {
+      background: linear-gradient(105deg, #fef7e0 0%, #fff2cf 100%);
+      border-radius: 32px;
+      padding: 1rem 1.5rem;
+      margin: 1rem 0;
+      border-left: 6px solid #f5a623;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .trial-details {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .trial-days-badge {
+      background: #ffb347;
+      color: #2c2c2c;
+      padding: 0.2rem 1rem;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: inline-block;
+      width: fit-content;
+    }
+
+    .total-block {
+      background: #0b1a2f;
+      padding: 1rem 2rem;
+      border-radius: 60px;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 1.8rem 0 1rem;
+      box-shadow: 0 8px 14px rgba(0,0,0,0.1);
+    }
+
+    .total-label {
+      font-size: 1.2rem;
+      font-weight: 400;
+      opacity: 0.9;
+    }
+
+    .total-amount {
+      font-size: 2.3rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .total-currency {
+      font-size: 1.2rem;
+      margin-left: 4px;
+    }
+
+    .order-button {
+      display: block;
+      background: #1d6f9c;
+      border: none;
+      color: white;
+      font-weight: 700;
+      font-size: 1.3rem;
+      padding: 1.1rem 2rem;
+      width: 100%;
+      border-radius: 60px;
+      margin-top: 1.2rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .order-button:hover {
+      background: #135a80;
+    }
+
+    .code-result {
+      margin-top: 1rem;
+      background: #eef2fa;
+      border-radius: 40px;
+      padding: 1rem 1.5rem;
+      text-align: center;
+      border: 1px solid #cbdde9;
+    }
+
+    .code-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #2a5f7a;
+      font-weight: 600;
+    }
+
+    .code-value {
+      font-family: monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      word-break: break-all;
+      background: #ffffffcc;
+      padding: 0.2rem 0.8rem;
+      border-radius: 40px;
+      display: inline-block;
+      margin-top: 6px;
+      color: #0e2f44;
+    }
+
+    .selected-info {
+      font-size: 0.95rem;
+      color: #2a4b6e;
+      background: #e1eaf3;
+      padding: 0.3rem 1.2rem;
+      border-radius: 30px;
+      display: inline-block;
+      margin-top: 5px;
+    }
+
+    .price-note {
+      font-size: 0.8rem;
+      color: #62748a;
+      margin-top: 0.5rem;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .footer-note {
+      margin-top: 1.4rem;
+      font-size: 0.8rem;
+      color: #5f748b;
+      text-align: center;
+    }
+
+    @media (max-width: 650px) {
+      .period-grid {
+        flex-direction: column;
+      }
+      .period-option {
+        flex: auto;
+      }
+      .promo-block {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .promo-button {
+        align-self: flex-start;
+      }
+    }
+    @media (max-width: 550px) {
+      .order-card { padding: 1.5rem; }
+      h1 { font-size: 1.7rem; }
+      .server-grid { grid-template-columns: 1fr 1fr; }
+      .total-block { flex-direction: column; align-items: flex-start; gap: 8px; }
+    }
+    @media (max-width: 410px) {
+      .server-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="order-card">
+  <h1>🛡️ VPN выбор <span>1 впн - 1 устройство</span></h1>
+  <div class="subhead">Выберите сервер</div>
+
+  <div id="vpnSelector">
+    <div class="section-title">🌍 Сервера</div>
+    <div class="server-grid" id="serverGrid"></div>
+    <div id="selectedServerDisplay" class="selected-info">🇩🇪 Германия</div>
+
+    <!-- Блок промокода -->
+    <div class="promo-block">
+      <div class="promo-input-group">
+        <div class="promo-label">🎟️ Промокод</div>
+        <input type="text" id="promoInput" class="promo-input" placeholder="Введите промокод" autocomplete="off">
+      </div>
+      <button id="applyPromoBtn" class="promo-button">Применить</button>
+      <div id="promoMessage" class="promo-message"></div>
+    </div>
+
+    <div class="period-section" id="periodSection">
+      <div class="section-title">📅 Срок подписки</div>
+      <div class="period-grid" id="periodGrid"></div>
+    </div>
+    <div id="trialDynamicPanel" style="display: none;"></div>
+
+    <div class="total-block">
+      <span class="total-label">К оплате</span>
+      <span><span class="total-amount" id="totalDisplay">258</span><span class="total-currency">₽</span></span>
+    </div>
+
+    <!-- Кнопка перехода на оплату (ссылка динамическая) -->
+    <a href="https://piggyuppy58.github.io/vpn/pay" class="order-button" target="_blank" id="paymentLink">💳 Перейти к оплате</a>
+    
+    <!-- Блок с кодом показывается ТОЛЬКО для пробного периода -->
+    <div id="paymentCodeContainer" class="code-result" style="display: none;">
+      <div class="code-label">✨ ВАШ ПРОМО-КОД ДЛЯ ПРОБНОГО ПЕРИОДА ✨</div>
+      <div class="code-value" id="paymentCodeText"></div>
+      <div style="font-size:0.75rem; margin-top:6px;">Скопируйте код и используйте при оформлении</div>
+    </div>
+  </div>
+
+  <div class="price-note">
+    <span>🌍 Обычные серверы: базовые 258 / 724 / 1242 / 2100 ₽</span>
+    <span>🔑 Мульти ключ: 442 / 1235 / 2136 / 3593 ₽</span>
+    <span>🎁 Пробный период: 2 дня бесплатно</span>
+  </div>
+  <div class="footer-note">* При нажатии на кнопку вы перейдёте на страницу оплаты. Для пробного периода будет сгенерирован отдельный код.</div>
+</div>
+
+<script>
+  (function() {
+    // ---------- ЦЕНЫ ----------
+    const REGULAR_PRICES_DEFAULT = { 1: 258, 3: 724, 6: 1242, 12: 2100 };
+    const REGULAR_PRICES_PROMO   = { 1: 222, 3: 621, 6: 1070, 12: 1805 };
+    const MULTI_PRICES = { 1: 442, 3: 1235, 6: 2136, 12: 3593 };
+
+    const SERVER_DISPLAY = {
+      germany:      { flag: '🇩🇪', name: 'Германия' },
+      poland:       { flag: '🇵🇱', name: 'Польша' },
+      russia:       { flag: '🇷🇺', name: 'Россия' },
+      finland:      { flag: '🇫🇮', name: 'Финляндия' },
+      lithuania:    { flag: '🇱🇹', name: 'Литва' },
+      switzerland:  { flag: '🇨🇭', name: 'Швейцария' },
+      sweden:       { flag: '🇸🇪', name: 'Швеция' },
+      france:       { flag: '🇫🇷', name: 'Франция' },
+      netherlands:  { flag: '🇳🇱', name: 'Нидерланды' },
+      turkey:       { flag: '🇹🇷', name: 'Турция' },
+      south_korea:  { flag: '🇰🇷', name: 'Южная Корея' },
+      india:        { flag: '🇮🇳', name: 'Индия' },
+      kazakhstan:   { flag: '🇰🇿', name: 'Казахстан' },
+      america:      { flag: '🇺🇸', name: 'Америка' },
+      russia_noads: { flag: '🇷🇺', name: 'Россия (для YT)' },
+      multikey:     { flag: '🌍', name: 'Мульти ключ' },
+      trial:        { flag: '🎁', name: 'Пробный период' }
+    };
+    const SERVER_LIST = [
+      'germany','poland','russia','finland','lithuania','switzerland','sweden',
+      'france','netherlands','turkey','south_korea','india','kazakhstan','america','russia_noads',
+      'multikey','trial'
+    ];
+
+    // ---------- Пробный период: всегда 2 дня ----------
+    const TRIAL_DURATION = 2;
+
+    const TRIAL_LOCATION_POOL = [
+      { eng: 'sweden',    weight: 1 },
+      { eng: 'lithuania', weight: 1 },
+      { eng: 'switzerland', weight: 1 },
+      { eng: 'poland',    weight: 1 },
+      { eng: 'germany',   weight: 96 }
+    ];
+    function selectRandomTrialLocation() {
+      const total = TRIAL_LOCATION_POOL.reduce((s, i) => s + i.weight, 0);
+      let r = Math.random() * total;
+      let acc = 0;
+      for (const loc of TRIAL_LOCATION_POOL) {
+        acc += loc.weight;
+        if (r <= acc) return loc.eng;
+      }
+      return 'germany';
+    }
+    function getTrialBase64Code(engLocation) {
+      const raw = `trial ${engLocation}`;
+      return btoa(unescape(encodeURIComponent(raw)));
+    }
+
+    // ---------- Состояние ----------
+    let selectedServer = 'germany';
+    let selectedPeriod = '1';
+    let currentTrialLocationEng = null;
+    let promoActive = false;
+    const validPromoCode = 'ipdpy58';
+
+    // DOM элементы
+    const serverGrid = document.getElementById('serverGrid');
+    const periodGrid = document.getElementById('periodGrid');
+    const periodSection = document.getElementById('periodSection');
+    const trialPanel = document.getElementById('trialDynamicPanel');
+    const totalSpan = document.getElementById('totalDisplay');
+    const selectedDisplaySpan = document.getElementById('selectedServerDisplay');
+    const paymentCodeContainer = document.getElementById('paymentCodeContainer');
+    const paymentCodeSpan = document.getElementById('paymentCodeText');
+    const promoInput = document.getElementById('promoInput');
+    const applyPromoBtn = document.getElementById('applyPromoBtn');
+    const promoMessageDiv = document.getElementById('promoMessage');
+    const paymentLink = document.getElementById('paymentLink');
+
+    // --- Функция обновления ссылки оплаты в зависимости от промокода ---
+    function updatePaymentLink() {
+      if (promoActive) {
+        paymentLink.href = 'https://piggyuppy58.github.io/vpn/payipdpy58';
+      } else {
+        paymentLink.href = 'https://piggyuppy58.github.io/vpn/pay';
+      }
+    }
+
+    // Получить текущую таблицу цен для обычных серверов
+    function getRegularPrices() {
+      return promoActive ? REGULAR_PRICES_PROMO : REGULAR_PRICES_DEFAULT;
+    }
+
+    function getCurrentPrice() {
+      if (selectedServer === 'trial') return 0;
+      if (selectedServer === 'multikey') return MULTI_PRICES[selectedPeriod];
+      const regPrices = getRegularPrices();
+      return regPrices[selectedPeriod];
+    }
+
+    function updateTotalDisplay() {
+      const price = getCurrentPrice();
+      totalSpan.textContent = price;
+    }
+
+    function renderPeriodOptions() {
+      let priceTable;
+      if (selectedServer === 'multikey') {
+        priceTable = MULTI_PRICES;
+      } else if (selectedServer === 'trial') {
+        return;
+      } else {
+        priceTable = getRegularPrices();
+      }
+      const periods = [1, 3, 6, 12];
+      let html = '';
+      for (const m of periods) {
+        const price = priceTable[m];
+        const checked = (selectedPeriod === m.toString()) ? 'checked' : '';
+        const monthWord = (m === 1) ? 'месяц' : (m < 5 ? 'месяца' : 'месяцев');
+        html += `
+          <div class="period-option">
+            <input type="radio" name="period" id="period${m}" value="${m}" ${checked}>
+            <label for="period${m}">
+              <span class="period-months">${m} ${monthWord}</span>
+              <span class="period-price">${price} ₽</span>
+            </label>
+          </div>
+        `;
+      }
+      periodGrid.innerHTML = html;
+      document.querySelectorAll('input[name="period"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+          selectedPeriod = e.target.value;
+          if (selectedServer !== 'trial') {
+            updateTotalDisplay();
+          }
+          if (selectedServer === 'trial') updateTrialCode();
+        });
+      });
+      updateTotalDisplay();
+    }
+
+    function renderTrialPanel() {
+      const duration = TRIAL_DURATION;
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + duration);
+      const dateStr = endDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+      trialPanel.innerHTML = `
+        <div class="trial-info-panel">
+          <div class="trial-details">
+            <span class="trial-days-badge">🎁 Бесплатно ${duration} ${declensionDays(duration)}</span>
+            <span>🔐 Пробный доступ действует до <strong>${dateStr}</strong></span>
+            <span>🌍 Провайдер автоматически подберёт оптимальную локацию</span>
+            <small style="color:#745d2b;">*Локация назначается системой</small>
+          </div>
+        </div>
+      `;
+      selectedDisplaySpan.innerHTML = `${SERVER_DISPLAY.trial.flag} ${SERVER_DISPLAY.trial.name}`;
+      totalSpan.textContent = '0';
+    }
+
+    function updateTrialCode() {
+      if (!currentTrialLocationEng) currentTrialLocationEng = selectRandomTrialLocation();
+      const trialCode = getTrialBase64Code(currentTrialLocationEng);
+      paymentCodeSpan.innerText = trialCode;
+    }
+
+    function declensionDays(d) {
+      if (d % 10 === 1 && d % 100 !== 11) return 'день';
+      if ([2,3,4].includes(d % 10) && (d % 100 < 10 || d % 100 > 20)) return 'дня';
+      return 'дней';
+    }
+
+    function handleServerChange() {
+      if (selectedServer === 'trial') {
+        currentTrialLocationEng = selectRandomTrialLocation();
+        periodSection.style.display = 'none';
+        trialPanel.style.display = 'block';
+        renderTrialPanel();
+        paymentCodeContainer.style.display = 'block';
+        updateTrialCode();
+      } else {
+        periodSection.style.display = 'block';
+        trialPanel.style.display = 'none';
+        paymentCodeContainer.style.display = 'none';
+        renderPeriodOptions();
+        const disp = SERVER_DISPLAY[selectedServer];
+        if (disp) selectedDisplaySpan.innerHTML = `${disp.flag} ${disp.name}`;
+      }
+    }
+
+    function applyPromo() {
+      const code = promoInput.value.trim().toLowerCase();
+      if (code === validPromoCode) {
+        if (!promoActive) {
+          promoActive = true;
+          promoMessageDiv.innerHTML = '<span class="promo-success">✅ Промокод активирован! Цены снижены до 222/621/1070/1805 ₽ (кроме Мульти ключа). Ссылка оплаты изменена.</span>';
+          if (selectedServer !== 'multikey' && selectedServer !== 'trial') {
+            renderPeriodOptions();
+          }
+          updatePaymentLink();
+        } else {
+          promoMessageDiv.innerHTML = '<span class="promo-success">✅ Промокод уже активен.</span>';
+        }
+      } else {
+        if (promoActive) {
+          promoActive = false;
+          if (selectedServer !== 'multikey' && selectedServer !== 'trial') {
+            renderPeriodOptions();
+          }
+          promoMessageDiv.innerHTML = '<span class="promo-error">❌ Неверный промокод. Скидка и специальная ссылка отключены.</span>';
+          updatePaymentLink();
+        } else {
+          promoMessageDiv.innerHTML = '<span class="promo-error">❌ Неверный промокод.</span>';
+          updatePaymentLink();
+        }
+      }
+    }
+
+    // Отрисовка списка серверов
+    function renderServerOptions() {
+      let html = '';
+      for (const key of SERVER_LIST) {
+        const disp = SERVER_DISPLAY[key];
+        let badge = '';
+        if (key === 'trial') badge = `Бесплатно ${TRIAL_DURATION} дн.`;
+        else if (key === 'multikey') badge = `${MULTI_PRICES[1]} ₽/мес`;
+        else {
+          const monthly = promoActive ? REGULAR_PRICES_PROMO[1] : REGULAR_PRICES_DEFAULT[1];
+          badge = `${monthly} ₽/мес`;
+        }
+        const checkedAttr = (key === 'germany') ? 'checked' : '';
+        html += `
+          <div class="server-option">
+            <input type="radio" name="vpnServer" id="srv-${key}" value="${key}" ${checkedAttr}>
+            <label for="srv-${key}">
+              <span class="flag-name">${disp.flag} ${disp.name}</span>
+              <span class="price-badge">${badge}</span>
+            </label>
+          </div>
+        `;
+      }
+      serverGrid.innerHTML = html;
+      document.querySelectorAll('input[name="vpnServer"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+          selectedServer = e.target.value;
+          handleServerChange();
+        });
+      });
+    }
+
+    // Инициализация
+    function init() {
+      renderServerOptions();
+      selectedServer = 'germany';
+      selectedPeriod = '1';
+      promoActive = false;
+      promoInput.value = '';
+      promoMessageDiv.innerHTML = '';
+      periodSection.style.display = 'block';
+      trialPanel.style.display = 'none';
+      paymentCodeContainer.style.display = 'none';
+      renderPeriodOptions();
+      selectedDisplaySpan.innerHTML = `${SERVER_DISPLAY.germany.flag} ${SERVER_DISPLAY.germany.name}`;
+      updateTotalDisplay();
+      updatePaymentLink();   // устанавливаем стандартную ссылку
+      
+      applyPromoBtn.addEventListener('click', applyPromo);
+    }
+    init();
+  })();
+</script>
+</body>
+</html>

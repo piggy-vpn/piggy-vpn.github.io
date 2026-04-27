@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPN Оплата</title>
+    <style>
+        /* стили идентичны pay.html */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0a0e14; --surface: #131820; --surface-hover: #1a1f2b; --border: #252b36;
+            --border-active: #4a6cf7; --text: #e2e4e9; --text-secondary: #9aa0b0;
+            --accent: #4a6cf7; --accent-glow: rgba(74, 108, 247, 0.35); --gold: #f0b90b;
+            --gold-glow: rgba(240, 185, 11, 0.3); --success: #2ecc71; --trial-accent: #be8eff;
+            --radius: 14px; --radius-sm: 10px; --radius-xs: 7px;
+            --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+            --shadow-card: 0 2px 8px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+        }
+        body {
+            font-family: 'Inter', system-ui, sans-serif; background: var(--bg);
+            background-image: radial-gradient(ellipse at 20% 20%, rgba(74,108,247,0.06) 0%, transparent 55%),
+                              radial-gradient(ellipse at 80% 70%, rgba(240,185,11,0.03) 0%, transparent 55%);
+            color: var(--text); min-height: 100vh; padding: 20px; display: flex; justify-content: center; align-items: flex-start;
+        }
+        .container { max-width: 860px; width: 100%; margin: 0 auto; padding-bottom: 40px; }
+        .header { text-align: center; margin-bottom: 32px; }
+        .icon-shield { display: inline-block; width: 56px; height: 56px; background: linear-gradient(135deg, #4a6cf7, #3b5de7); border-radius: 16px; font-size: 28px; line-height: 56px; margin-bottom: 14px; box-shadow: 0 8px 28px rgba(74,108,247,0.3); }
+        h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.4px; }
+        .sub { color: var(--text-secondary); font-size: 14px; }
+        .section-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-secondary); margin-bottom: 12px; margin-top: 28px; }
+        .server-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .server-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 14px 12px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px; font-weight: 500; font-size: 14px; position: relative; box-shadow: var(--shadow-card); }
+        .server-card:hover { background: var(--surface-hover); border-color: #3a4155; transform: translateY(-1px); }
+        .server-card.selected { border-color: var(--accent); background: #151d30; box-shadow: 0 0 0 2px rgba(74,108,247,0.25); }
+        .server-card.selected::after { content: '✓'; position: absolute; top: 8px; right: 10px; font-size: 12px; color: var(--accent); }
+        .server-card.multi-card { border-style: dashed; }
+        .server-card.multi-card.selected { border-color: var(--gold); }
+        .server-card.multi-card.selected::after { color: var(--gold); }
+        .server-card.trial-card { border-color: #6c5ce7; }
+        .server-card.trial-card.selected { border-color: #be8eff; background: #1a1530; }
+        .server-card.trial-card.selected::after { color: #be8eff; }
+        .flag { font-size: 22px; width: 32px; text-align: center; }
+        .server-name { flex: 1; font-size: 13.5px; }
+        .badge-multi { font-size: 10px; background: #f0b90b22; color: #f0b90b; padding: 2px 7px; border-radius: 20px; }
+        .badge-trial { font-size: 10px; background: #be8eff22; color: #be8eff; padding: 2px 7px; border-radius: 20px; }
+        .duration-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px; }
+        .duration-btn { flex: 1; padding: 13px 16px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font-weight: 500; text-align: center; transition: all 0.2s; }
+        .duration-btn.selected { border-color: var(--accent); background: #151d30; box-shadow: 0 0 0 2px rgba(74,108,247,0.2); }
+        .price-panel { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .price-value { font-size: 32px; font-weight: 800; color: #fff; }
+        .savings-badge { background: #2ecc7122; color: #2ecc71; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-left: 12px; }
+        .payment-methods { display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; }
+        .payment-method-card { flex: 1; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 14px; text-align: center; cursor: pointer; font-weight: 500; transition: 0.2s; }
+        .payment-method-card.selected { border-color: var(--accent); background: #151d30; }
+        .receipt-section { background: #0d1117; border: 2px solid #252b36; border-radius: var(--radius); padding: 22px 20px; margin-bottom: 20px; position: relative; }
+        .receipt-code { background: #06080c; border: 1px solid #1a1f28; border-radius: var(--radius-xs); padding: 16px 18px; font-family: var(--font-mono); font-size: 15px; word-break: break-all; }
+        .receipt-code.placeholder { color: #3a3f4a; font-family: inherit; font-style: italic; text-align: center; }
+        .copy-btn { position: absolute; top: 50%; right: 20px; transform: translateY(-50%); background: #1e2530; border: 1px solid #333b48; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; transition: 0.2s; }
+        .copy-btn:hover { background: #283040; border-color: var(--accent); color: white; }
+        .trial-input-area { background: #11161f; border-radius: var(--radius-sm); padding: 20px; margin-bottom: 24px; border-left: 4px solid #be8eff; }
+        .trial-label { font-weight: 600; margin-bottom: 8px; display: block; color: #be8eff; }
+        textarea { width: 100%; background: #0c0f14; border: 1.5px solid var(--border); border-radius: var(--radius-xs); padding: 12px; color: white; font-family: var(--font-mono); font-size: 14px; resize: vertical; }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: #1a2520; border: 1px solid #2ecc71; color: #2ecc71; padding: 12px 24px; border-radius: 30px; font-weight: 600; transition: 0.3s; z-index: 1000; pointer-events: none; }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .info-text { font-size: 12px; color: var(--text-secondary); margin-top: 8px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="icon-shield">🔐</div>
+        <h1>Оплата VPN (Промокод)</h1>
+        <p class="sub">Тариф со скидкой</p>
+    </div>
+
+    <div class="section-title">🌍 Выберите сервер</div>
+    <div class="server-grid" id="serverGrid"></div>
+    <div id="dynamicArea"></div>
+    <div class="section-title">💳 Способ оплаты</div>
+    <div class="payment-methods" id="paymentMethods">
+        <div class="payment-method-card selected" data-method="cash">💵 Наличные</div>
+        <div class="payment-method-card" data-method="provider">🏪 Оплата у поставщика</div>
+    </div>
+    <div class="section-title">🧾 Код квитанции</div>
+    <div class="receipt-section" id="receiptSection">
+        <div class="receipt-code placeholder" id="receiptCodeBlock">Выберите сервер или введите код пробного периода</div>
+        <button class="copy-btn" id="copyBtn" style="display: none;">📋 Копировать</button>
+    </div>
+    <div id="receiptFooter" class="info-text"></div>
+</div>
+<div class="toast" id="toast">✅ Скопировано</div>
+
+<script>
+    const PROMO_TAG = btoa('ipdpy58');   // "aXBkcHk1OA=="
+    const prices = {
+        regular: { 1: 222, 3: 621, 6: 1070, 12: 1805 },
+        multi: { 1: 442, 3: 1235, 6: 2136, 12: 3593 }
+    };
+    const savingsMap = { 1:0, 3:4, 6:22, 12:38 };
+    const durations = [
+        { months: 1, label: '1 месяц', code: 'MSBtb250aA==' },
+        { months: 3, label: '3 месяца', code: 'MyBtb250aA==' },
+        { months: 6, label: '6 месяцев', code: 'NiBtb250aA==' },
+        { months: 12, label: '12 месяцев', code: 'MTIgbW9udGg=' }
+    ];
+
+    const servers = [
+        { id: 'germany', name: 'Germany', flag: '🇩🇪', code: 'R2VybWFueQo=', type: 'regular' },
+        { id: 'poland', name: 'Poland', flag: '🇵🇱', code: 'UG9sYW5kCg==', type: 'regular' },
+        { id: 'russia', name: 'Russia', flag: '🇷🇺', code: 'UnVzc2lh', type: 'regular' },
+        { id: 'finland', name: 'Finland', flag: '🇫🇮', code: 'RmlubGFuZA==', type: 'regular' },
+        { id: 'lithuania', name: 'Lithuania', flag: '🇱🇹', code: 'TGl0aHVhbmlh', type: 'regular' },
+        { id: 'switzerland', name: 'Switzerland', flag: '🇨🇭', code: 'U3dpdHplcmxhbmQ=', type: 'regular' },
+        { id: 'sweden', name: 'Sweden', flag: '🇸🇪', code: 'U3dlZGVuCg==', type: 'regular' },
+        { id: 'france', name: 'France', flag: '🇫🇷', code: 'RnJhbmNlCg==', type: 'regular' },
+        { id: 'netherlands', name: 'Netherlands', flag: '🇳🇱', code: 'TmV0aGVybGFuZHMK', type: 'regular' },
+        { id: 'turkey', name: 'Turkey', flag: '🇹🇷', code: 'VHVya2V5Cg==', type: 'regular' },
+        { id: 'south_korea', name: 'South Korea', flag: '🇰🇷', code: 'U291dGggS29yZWEK', type: 'regular' },
+        { id: 'india', name: 'India', flag: '🇮🇳', code: 'SW5kaWEK', type: 'regular' },
+        { id: 'kazakhstan', name: 'Kazakhstan', flag: '🇰🇿', code: 'S2F6YWtoc3Rhbg==', type: 'regular' },
+        { id: 'america', name: 'America', flag: '🇺🇸', code: 'QW1lcmljYQo=', type: 'regular' },
+        { id: 'russia_noads', name: 'Russia (YT)', flag: '🇷🇺', code: 'UnVzc2lhIG5vYWRzCg==', type: 'regular' },
+        { id: 'multi', name: 'Multi', flag: '🌍', code: 'TXVsdGk=', type: 'multi' },
+        { id: 'trial', name: 'Пробный период', flag: '🎁', code: null, type: 'trial' }
+    ];
+
+    let selectedServerId = 'germany';
+    let selectedDurationMonths = 1;
+    let selectedPaymentMethod = 'cash';
+    let manualTrialCode = '';
+
+    const serverGrid = document.getElementById('serverGrid');
+    const dynamicArea = document.getElementById('dynamicArea');
+    const receiptCodeBlock = document.getElementById('receiptCodeBlock');
+    const copyBtn = document.getElementById('copyBtn');
+    const receiptFooter = document.getElementById('receiptFooter');
+
+    function getServerById(id) { return servers.find(s => s.id === id); }
+
+    // Генерация кода с добавлением промо-тега (для regular и multi)
+    function generateNormalCode(server, months) {
+        const dur = durations.find(d => d.months === months);
+        if (!server || !dur) return null;
+        return server.code + '   ' + dur.code + '   ' + PROMO_TAG;
+    }
+
+    function getCurrentDisplayCode() {
+        const srv = getServerById(selectedServerId);
+        if (!srv) return null;
+        if (srv.type === 'trial') return manualTrialCode.trim() || null;
+        return generateNormalCode(srv, selectedDurationMonths);
+    }
+
+    function getPriceInfo() {
+        const srv = getServerById(selectedServerId);
+        if (!srv || (srv.type !== 'regular' && srv.type !== 'multi')) return null;
+        return { price: prices[srv.type][selectedDurationMonths], savings: savingsMap[selectedDurationMonths] };
+    }
+
+    function renderServerCards() {
+        serverGrid.innerHTML = '';
+        servers.forEach(s => {
+            const c = document.createElement('div'); c.className = 'server-card';
+            if (s.type === 'multi') c.classList.add('multi-card');
+            if (s.type === 'trial') c.classList.add('trial-card');
+            c.dataset.id = s.id;
+            c.innerHTML = `<span class="flag">${s.flag}</span><span class="server-name">${s.name}</span>${s.type==='multi'?'<span class="badge-multi">MULTI</span>':''}${s.type==='trial'?'<span class="badge-trial">🎁 TRIAL</span>':''}`;
+            c.addEventListener('click', () => { selectedServerId = s.id; if (s.type==='trial') { manualTrialCode=''; const inp=document.getElementById('trialCodeInput'); if(inp)inp.value=''; } updateAll(); });
+            serverGrid.appendChild(c);
+        });
+        highlightServer();
+    }
+    function highlightServer() { document.querySelectorAll('.server-card').forEach(c => c.classList.toggle('selected', c.dataset.id === selectedServerId)); }
+
+    function renderDynamicArea() {
+        const srv = getServerById(selectedServerId);
+        if (!srv) return;
+        if (srv.type === 'trial') {
+            dynamicArea.innerHTML = `<div class="trial-input-area"><div class="trial-label">🎁 Введите код пробного периода</div><textarea id="trialCodeInput" rows="2" placeholder="Введите код"></textarea><div class="info-text">Вставьте код от провайдера.</div></div>`;
+            const inp = document.getElementById('trialCodeInput'); if(inp) { inp.value = manualTrialCode; inp.addEventListener('input', e => { manualTrialCode = e.target.value; updateReceiptBlock(); }); }
+            const pp = document.querySelector('.price-panel'); if(pp) pp.remove();
+        } else {
+            let durHtml = '<div class="duration-row">';
+            durations.forEach(d => durHtml += `<button class="duration-btn ${d.months===selectedDurationMonths?'selected':''}" data-months="${d.months}">${d.label}</button>`);
+            durHtml += '</div>';
+            const pi = getPriceInfo();
+            let priceHtml = `<div class="price-panel"><span class="price-label">Стоимость</span><span class="price-value">${pi?pi.price.toLocaleString('ru-RU')+' ₽':'—'}${pi&&pi.savings>0?`<span class="savings-badge">-${pi.savings}%</span>`:''}</span></div>`;
+            dynamicArea.innerHTML = durHtml + priceHtml;
+            document.querySelectorAll('.duration-btn').forEach(b => b.addEventListener('click', () => { selectedDurationMonths = parseInt(b.dataset.months); renderDynamicArea(); updateReceiptBlock(); }));
+        }
+        updateReceiptBlock();
+    }
+
+    function updateReceiptBlock() {
+        const srv = getServerById(selectedServerId);
+        const code = getCurrentDisplayCode();
+        const has = code && code.trim()!=='';
+        if (!srv) { receiptCodeBlock.textContent='Выберите сервер'; receiptCodeBlock.classList.add('placeholder'); copyBtn.style.display='none'; receiptFooter.textContent=''; return; }
+        if (srv.type==='trial') {
+            if (has) { receiptCodeBlock.classList.remove('placeholder'); receiptCodeBlock.innerHTML=`<span style="font-family:monospace;">${escapeHtml(code)}</span>`; copyBtn.style.display='block'; receiptFooter.innerHTML='✅ Скопируйте и предъявите.'; }
+            else { receiptCodeBlock.textContent='Введите код пробного периода'; receiptCodeBlock.classList.add('placeholder'); copyBtn.style.display='none'; receiptFooter.innerHTML='Вставьте код от провайдера.'; }
+        } else {
+            if (has) { receiptCodeBlock.classList.remove('placeholder'); receiptCodeBlock.innerHTML=`<span style="font-family:monospace;">${escapeHtml(code)}</span>`; copyBtn.style.display='block'; receiptFooter.innerHTML=`Оплата: ${selectedPaymentMethod==='cash'?'наличными':'у поставщика'} | Сумма: ${getPriceInfo()?.price||'?'} ₽ (промокод)`; }
+            else { receiptCodeBlock.textContent='Выберите сервер и срок'; receiptCodeBlock.classList.add('placeholder'); copyBtn.style.display='none'; receiptFooter.innerHTML=''; }
+        }
+    }
+    function escapeHtml(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+    async function copyCode() {
+        const code = getCurrentDisplayCode();
+        if (!code) { showToast('❌ Нет кода'); return; }
+        try { await navigator.clipboard.writeText(code); showToast('✅ Скопировано'); copyBtn.textContent='✅ Готово!'; setTimeout(()=>copyBtn.textContent='📋 Копировать',1500); }
+        catch { fallbackCopy(code); }
+    }
+    function fallbackCopy(t) { const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('✅ Скопировано (вручную)'); }
+    function showToast(m) { const toast=document.getElementById('toast'); toast.textContent=m; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),2200); }
+    function updateAll() { highlightServer(); renderDynamicArea(); document.querySelectorAll('.payment-method-card').forEach(c=>c.classList.toggle('selected', c.dataset.method===selectedPaymentMethod)); updateReceiptBlock(); }
+    function initPayment() { document.querySelectorAll('.payment-method-card').forEach(c=>c.addEventListener('click',()=>{selectedPaymentMethod=c.dataset.method; updateAll();})); }
+    copyBtn.addEventListener('click', copyCode);
+    renderServerCards(); initPayment(); updateAll();
+</script>
+</body>
+</html>

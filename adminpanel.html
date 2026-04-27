@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPN · Получить конфигурацию</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0a0e14; --surface: #131820; --surface-hover: #1a1f2b; --border: #252b36;
+            --border-active: #4a6cf7; --text: #e2e4e9; --text-secondary: #9aa0b0;
+            --accent: #4a6cf7; --accent-glow: rgba(74, 108, 247, 0.35); --success: #2ecc71;
+            --trial-accent: #be8eff; --radius: 14px; --radius-sm: 10px; --radius-xs: 7px;
+            --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+            --shadow-card: 0 2px 8px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+        }
+        body {
+            font-family: 'Inter', system-ui, sans-serif; background: var(--bg);
+            background-image: radial-gradient(ellipse at 20% 20%, rgba(74,108,247,0.06) 0%, transparent 55%),
+                              radial-gradient(ellipse at 80% 70%, rgba(240,185,11,0.03) 0%, transparent 55%);
+            color: var(--text); min-height: 100vh; padding: 20px; display: flex; justify-content: center; align-items: flex-start;
+        }
+        .container { max-width: 720px; width: 100%; margin: 0 auto; padding-bottom: 40px; }
+        .header { text-align: center; margin-bottom: 32px; }
+        .icon-shield { display: inline-block; width: 56px; height: 56px; background: linear-gradient(135deg, #4a6cf7, #3b5de7); border-radius: 16px; font-size: 28px; line-height: 56px; margin-bottom: 14px; box-shadow: 0 8px 28px rgba(74,108,247,0.3); }
+        h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.4px; }
+        .sub { color: var(--text-secondary); font-size: 14px; }
+        .section-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.4px; color: var(--text-secondary); margin-bottom: 12px; margin-top: 28px; }
+        .receipt-input-area { background: #0d1117; border: 2px solid #252b36; border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+        textarea, input { width: 100%; background: #0c0f14; border: 1.5px solid var(--border); border-radius: var(--radius-xs); padding: 12px; color: white; font-family: var(--font-mono); font-size: 15px; resize: vertical; margin-bottom: 12px; }
+        .action-btn { background: var(--accent); border: none; color: white; padding: 12px 24px; border-radius: 30px; font-weight: 600; cursor: pointer; font-size: 15px; transition: background 0.2s; margin-right: 10px; }
+        .action-btn:hover { background: #3b5de7; }
+        .action-btn.secondary { background: #1e2530; border: 1px solid #333b48; }
+        .action-btn.secondary:hover { background: #283040; }
+        .result-block { background: #0d1117; border: 2px solid #252b36; border-radius: var(--radius); padding: 20px; margin-top: 20px; display: none; }
+        .result-block.active { display: block; }
+        .config-box { background: #06080c; border: 1px solid #1a1f28; border-radius: var(--radius-xs); padding: 16px 18px; font-family: var(--font-mono); font-size: 14px; word-break: break-all; color: #e2e4e9; margin-bottom: 12px; white-space: pre-wrap; max-height: 400px; overflow-y: auto; }
+        .info-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 10px; color: var(--text-secondary); font-size: 13px; }
+        .copy-btn-small { background: #1e2530; border: 1px solid #333b48; color: white; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 500; transition: 0.2s; }
+        .copy-btn-small:hover { background: #283040; border-color: var(--accent); }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: #1a2520; border: 1px solid #2ecc71; color: #2ecc71; padding: 12px 24px; border-radius: 30px; font-weight: 600; transition: 0.3s; z-index: 1000; pointer-events: none; }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .error-msg { color: #e0556a; font-size: 13px; margin-top: 6px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="icon-shield">🔐</div>
+        <h1>Получить конфигурацию</h1>
+        <p class="sub">Вставьте код квитанции — получите готовый ключ доступа</p>
+    </div>
+
+    <div class="section-title">📩 Код квитанции</div>
+    <div class="receipt-input-area">
+        <textarea id="receiptInput" placeholder="Обычный: UnVzc2lh   MSBtb250aA==   aXBkcHk1OA== или Пробный: dHJpYWwgZ2VybWFueQ==" rows="2"></textarea>
+        <button id="generateBtn" class="action-btn">✨ Сгенерировать конфигурацию</button>
+        <div id="parseError" class="error-msg"></div>
+    </div>
+
+    <div id="resultBlock" class="result-block">
+        <div class="section-title">🔑 Ваша конфигурация</div>
+        <div class="info-row">
+            <span id="serverInfo">Сервер: –</span>
+            <span id="expireInfo">Истекает: –</span>
+        </div>
+        <div class="config-box" id="configText"></div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button id="copyLinkBtn" class="action-btn secondary">📋 Скопировать VLESS ссылку(и)</button>
+            <button id="copyFullBtn" class="action-btn secondary">📋 Скопировать всю конфигурацию</button>
+        </div>
+    </div>
+</div>
+<div class="toast" id="toast">✅ Скопировано</div>
+
+<script>
+    (function() {
+        // ---------- VLESS КЛЮЧИ (существующие) ----------
+        const GERMANY_MAIN = {
+            uuid: '6ded55d9-666e-4f00-950d-111277038e0f', ip: '108.165.164.112', port: 443, security: 'reality', type: 'tcp',
+            sni: 'de.primarymaster.ru', fp: 'chrome', pbk: 'e_TzYcU3HBfwR765wrJ_LrTNa6-G6uabpyAS1zEt4VA', sid: 'b370a913d1ddb581',
+            hashtag: '%F0%9F%87%A9%F0%9F%87%AA%20%D0%93%D0%B5%D1%80%D0%BC%D0%B0%D0%BD%D0%B8%D1%8F%20%2320'
+        };
+        const GERMANY_ALT = {
+            uuid: '684af546-0065-4628-ae40-f84e51d76046', ip: '45.131.214.45', port: 443, security: 'reality', type: 'grpc',
+            sni: 'd.primarymaster.online', fp: 'chrome', pbk: 'ID6lMOmt7BiuPHjZkoLSWNR9ONmB6b4L9skIIFjtXxU', sid: '',
+            hashtag: '%F0%9F%87%A9%F0%9F%87%AA%20%D0%93%D0%B5%D1%80%D0%BC%D0%B0%D0%BD%D0%B8%D1%8F%20%2311'
+        };
+        const SWITZERLAND = {
+            uuid: '36483965-4089-41e4-9323-c8539f3f3ea3', ip: '193.228.128.230', port: 443, security: 'reality', type: 'grpc',
+            sni: 'ch.primarymaster.online', fp: 'chrome', pbk: 'rS6r3PZQHZp31tnOmJAuCme4xJgsak_JsZ5hTPwpuiY', sid: '8b8dd8a1c0c468d3',
+            hashtag: '%F0%9F%87%A8%F0%9F%87%AD%20%D0%A8%D0%B2%D0%B5%D0%B9%D1%86%D0%B0%D1%80%D0%B8%D1%8F%20%2319'
+        };
+        const POLAND = {
+            uuid: '3dd6c219-260e-4a8d-bb32-c1f47ba5644f', ip: '95.85.253.4', port: 443, security: 'reality', type: 'grpc',
+            sni: 'p.prismix.cc', fp: 'chrome', pbk: 'ntFbOEij-9R-omNsRPCDXCtPd9bExp38MGDX-Kf0qX8', sid: '95816d4297ab1df8',
+            hashtag: '%F0%9F%87%B5%F0%9F%87%B1%20%D0%9F%D0%BE%D0%BB%D1%8C%D1%88%D0%B0%20%2318'
+        };
+        const FINLAND = {
+            uuid: 'c0c939d2-8901-4814-90e7-bd6b60bfe175', ip: '144.31.82.173', port: 443, security: 'reality', type: 'tcp',
+            sni: '01.prismix.cc', fp: 'chrome', pbk: '9enLKN0rpkjZMpNrw-zPdWCqSHZcsmCVqgM9Jy-HuVw', sid: '36321c7fa3c26dda',
+            hashtag: '%F0%9F%87%AB%F0%9F%87%AE%20%D0%A4%D0%B8%D0%BD%D0%BB%D1%8F%D0%BD%D0%B4%D0%B8%D1%8F%20%2318'
+        };
+        const LITHUANIA = {
+            uuid: '68d4701d-fdd7-4f51-941c-803852437db0', ip: '138.124.65.30', port: 443, security: 'reality', type: 'grpc',
+            sni: 'lt.scamhost.online', fp: 'chrome', pbk: 'E73ZzWafWTKOhCdoYdmVIcIbqYZtAwy0rgcdp7IOnTE', sid: '546d6bd5a398127f',
+            hashtag: '%F0%9F%87%B1%F0%9F%87%B9%20%D0%9B%D0%B8%D1%82%D0%B2%D0%B0%20%2314'
+        };
+        const RUSSIA = {
+            uuid: '3da5c62b-22ff-497b-909e-24c0105278f4', ip: '109.122.199.7', port: 443, security: 'reality', type: 'grpc',
+            sni: 'ru.scamhost.online', fp: 'chrome', pbk: 'wUDFFgIeBDfqbpdrlLfXs_VWR8CmoWOb0LnLXL8TSQ0', sid: '373f2cf00ec29865',
+            hashtag: '%F0%9F%87%B7%F0%9F%87%BA%20%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D1%8F%20%239'
+        };
+        const SWEDEN = {
+            uuid: '314c799f-21a9-4c7f-8f24-7a7e8fb3062b', ip: '64.188.81.16', port: 443, security: 'reality', type: 'grpc',
+            sni: 'se.scamhost.online', fp: 'chrome', pbk: 'Fe8gygB8oyqRElnoaMS9ogNYpCd6GP-c0ackIg25MWU', sid: '762d996751ef6686',
+            hashtag: '%F0%9F%87%B8%F0%9F%87%AA%20%D0%A8%D0%B2%D0%B5%D1%86%D0%B8%D1%8F%20%236'
+        };
+
+        // Новые локации — пока без ключей (vless: null)
+        const NULL_VLESS = null;
+
+        const trialCountries = {
+            germany:    { vless: GERMANY_MAIN, weight: 96 },
+            sweden:     { vless: SWEDEN, weight: 1 },
+            lithuania:  { vless: LITHUANIA, weight: 1 },
+            switzerland:{ vless: SWITZERLAND, weight: 1 },
+            poland:     { vless: POLAND, weight: 1 }
+        };
+
+        const ALL_MULTI_KEYS = [GERMANY_MAIN, GERMANY_ALT, SWITZERLAND, POLAND, FINLAND, LITHUANIA, RUSSIA, SWEDEN];
+
+        const servers = [
+            { id: 'germany', name: 'Германия', flag: '🇩🇪', code: 'R2VybWFueQo=', vless: GERMANY_MAIN },
+            { id: 'poland', name: 'Польша', flag: '🇵🇱', code: 'UG9sYW5kCg==', vless: POLAND },
+            { id: 'russia', name: 'Россия', flag: '🇷🇺', code: 'UnVzc2lh', vless: RUSSIA },
+            { id: 'finland', name: 'Финляндия', flag: '🇫🇮', code: 'RmlubGFuZA==', vless: FINLAND },
+            { id: 'lithuania', name: 'Литва', flag: '🇱🇹', code: 'TGl0aHVhbmlh', vless: LITHUANIA },
+            { id: 'switzerland', name: 'Швейцария', flag: '🇨🇭', code: 'U3dpdHplcmxhbmQ=', vless: SWITZERLAND },
+            { id: 'sweden', name: 'Швеция', flag: '🇸🇪', code: 'U3dlZGVuCg==', vless: SWEDEN },
+            // новые (заглушки)
+            { id: 'france', name: 'Франция', flag: '🇫🇷', code: 'RnJhbmNlCg==', vless: NULL_VLESS },
+            { id: 'netherlands', name: 'Нидерланды', flag: '🇳🇱', code: 'TmV0aGVybGFuZHMK', vless: NULL_VLESS },
+            { id: 'turkey', name: 'Турция', flag: '🇹🇷', code: 'VHVya2V5Cg==', vless: NULL_VLESS },
+            { id: 'south_korea', name: 'Южная Корея', flag: '🇰🇷', code: 'U291dGggS29yZWEK', vless: NULL_VLESS },
+            { id: 'india', name: 'Индия', flag: '🇮🇳', code: 'SW5kaWEK', vless: NULL_VLESS },
+            { id: 'kazakhstan', name: 'Казахстан', flag: '🇰🇿', code: 'S2F6YWtoc3Rhbg==', vless: NULL_VLESS },
+            { id: 'america', name: 'Америка', flag: '🇺🇸', code: 'QW1lcmljYQo=', vless: NULL_VLESS },
+            { id: 'russia_noads', name: 'Россия (YT без рекламы)', flag: '🇷🇺🚫', code: 'UnVzc2lhIG5vYWRzCg==', vless: NULL_VLESS },
+            { id: 'multi', name: 'Multi', flag: '🌍', code: 'TXVsdGk=', vless: ALL_MULTI_KEYS }
+        ];
+
+        const durations = [
+            { months: 1, label: '1 месяц', code: 'MSBtb250aA==' },
+            { months: 3, label: '3 месяца', code: 'MyBtb250aA==' },
+            { months: 6, label: '6 месяцев', code: 'NiBtb250aA==' },
+            { months: 12, label: '12 месяцев', code: 'MTIgbW9udGg=' }
+        ];
+
+        function getServerByCode(code) { return servers.find(s => s.code === code); }
+        function getDurationByCode(code) { return durations.find(d => d.code === code); }
+
+        function calculateRegularExpire(months) {
+            const now = new Date();
+            const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 3, 0, 0, 0));
+            if (next <= now) next.setUTCDate(next.getUTCDate() + 1);
+            next.setUTCMonth(next.getUTCMonth() + months);
+            return Math.floor(next.getTime() / 1000);
+        }
+
+        function calculateTrialExpire() {
+            const days = 2;   // всегда 2 дня
+            const now = new Date();
+            const expire = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 3, 0, 0, 0));
+            if (expire <= now) expire.setUTCDate(expire.getUTCDate() + 1);
+            expire.setUTCDate(expire.getUTCDate() + days);
+            return Math.floor(expire.getTime() / 1000);
+        }
+
+        function formatExpireDate(ts) { return new Date(ts*1000).toLocaleDateString('ru-RU',{timeZone:'UTC'}) + ' 03:00 UTC'; }
+
+        function buildSingleVlessLink(v) {
+            let q = `security=${v.security}&type=${v.type}`;
+            q += v.type==='grpc' ? `&headerType=&serviceName=&authority=&mode=gun` : `&headerType=&path=&host=`;
+            q += `&sni=${v.sni}&fp=${v.fp}&pbk=${v.pbk}&sid=${v.sid}`;
+            return `vless://${v.uuid}@${v.ip}:${v.port}?${q}#${v.hashtag}`;
+        }
+
+        function processReceipt() {
+            const raw = document.getElementById('receiptInput').value.trim();
+            const err = document.getElementById('parseError');
+            err.textContent = '';
+            document.getElementById('resultBlock').classList.remove('active');
+
+            if (!raw) { err.textContent = 'Введите код'; return; }
+
+            // пробный период
+            if (!raw.includes('   ')) {
+                let decoded; try { decoded = atob(raw).trim(); } catch { err.textContent = 'Ошибка base64'; return; }
+                if (!decoded.startsWith('trial ')) { err.textContent = 'Неизвестный формат'; return; }
+                const loc = decoded.split(' ')[1]?.toLowerCase();
+                let vless = trialCountries[loc]?.vless || selectWeightedTrial();
+                const exp = calculateTrialExpire();
+                const link = buildSingleVlessLink(vless);
+                document.getElementById('serverInfo').innerHTML = `Пробный период · ${loc||'авто'}`;
+                document.getElementById('expireInfo').innerHTML = `Истекает: ${formatExpireDate(exp)} (2 дня)`;
+                document.getElementById('configText').textContent = `#profile-update-interval: 1\n#subscription-userinfo: expire=${exp}\n${link}`;
+            } else {
+                // обычный / multi
+                const parts = raw.split('   ');
+                const serverPart = parts[0];
+                const durationPart = parts[1];
+                const server = getServerByCode(serverPart);
+                if (!server) { err.textContent = 'Сервер не найден'; return; }
+                if (!server.vless) { err.textContent = `Ключ для "${server.name}" пока не добавлен. Обратитесь к администратору.`; return; }
+                const duration = getDurationByCode(durationPart);
+                if (!duration) { err.textContent = 'Код срока не распознан'; return; }
+                const exp = calculateRegularExpire(duration.months);
+                const links = Array.isArray(server.vless) ? server.vless.map(buildSingleVlessLink) : [buildSingleVlessLink(server.vless)];
+                document.getElementById('serverInfo').innerHTML = `${server.flag} ${server.name}`;
+                document.getElementById('expireInfo').innerHTML = `Истекает: ${formatExpireDate(exp)}`;
+                document.getElementById('configText').textContent = `#profile-update-interval: 1\n#subscription-userinfo: expire=${exp}\n` + links.join('\n');
+            }
+            document.getElementById('resultBlock').classList.add('active');
+        }
+
+        function selectWeightedTrial() {
+            const entries = Object.entries(trialCountries);
+            const total = entries.reduce((s,[,d])=>s+d.weight,0);
+            let r = Math.random()*total;
+            for (const [,d] of entries) if ((r-=d.weight)<=0) return d.vless;
+            return entries[0][1].vless;
+        }
+
+        // UI
+        document.getElementById('generateBtn').addEventListener('click', processReceipt);
+        document.getElementById('copyLinkBtn').addEventListener('click', ()=>{
+            const cfg = document.getElementById('configText').textContent.split('\n').slice(2).join('\n').trim();
+            if (cfg) copyText(cfg); else showToast('❌ Сначала сгенерируйте');
+        });
+        document.getElementById('copyFullBtn').addEventListener('click', ()=>{
+            const cfg = document.getElementById('configText').textContent;
+            if (cfg) copyText(cfg); else showToast('❌ Сначала сгенерируйте');
+        });
+        function copyText(t) { navigator.clipboard.writeText(t).then(()=>showToast('✅ Скопировано')).catch(()=>{ const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('✅ Скопировано'); }); }
+        function showToast(m) { const toast=document.getElementById('toast'); toast.textContent=m; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),2200); }
+    })();
+</script>
+</body>
+</html>
